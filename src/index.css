@@ -64,33 +64,43 @@ table {
 }
 
 .app {
-  width: 400px;
+  width: 50%;
+  min-width: 300px;
+  max-width: 700px;
+  /* border: 1px solid black; */
   margin: 0 auto;
 }
 
 .row {
-  display: flex;
+  /* border: 1px solid black; */
+  text-align: center;
 }
 
 .tile {
-  flex-grow: 1;
   display: inline-block;
   border: 1px solid gray;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   padding: 5px;
   margin: 3px;
   height: 30px;
+  text-align: center;
+  position: relative;
+}
+
+.text-node {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .keyboard {
-  border: 1px solid black;
+  /* border: 1px solid black; */
+  padding-top: 20px;
 }
 
 .keyrow {
   display: flex;
-  justify-content: space-evenly;
+  justify-content: center;
 }
 
 .key {
@@ -103,4 +113,12 @@ table {
   align-items: center;
   padding: 8px 3px;
   height: 30px;
+}
+
+h1 {
+  text-align: center;
+  font-weight: bold;
+  padding-bottom: 3px;
+  border-bottom: 1px solid black;
+  margin: 10px auto;
 }

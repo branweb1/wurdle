@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 
 // TODO styling
-// TODO dynamically compute height and width of board and tiles
 // board height is some multiple of 6, tile height is bh / 6, and tile width is the same
 // TODO expand wordlist and select some other way--network call?
 // TODO configure to allow for 6-letter words
@@ -12,6 +11,10 @@ const wordlist = [
   'angry', 'works', 'tooth', 'shift', 'guide', 'cycle', 'quote', 'knife', 'brief', 'shout', 'giant', 'slide',
   'giant', 'weigh', 'sauce', 'idiot', 'taste', 'stake', 'tiger', 'adapt', 'smell', 'humor', 'silly', 'guide'
 ]
+
+const enter = '↵'
+const backspace = '⌫'
+
 
 function getWord(words: string[]): string {
   const idx = Math.floor(Math.random() * words.length);
@@ -39,7 +42,7 @@ function initMatrix(rows: number, cols: number): Letter[][] {
   for (let i = 0; i < rows; i++) {
     const row = []
     for (let j = 0; j < cols; j++) {
-      row.push(makeLetter('x'))
+      row.push(makeLetter(' '))
     }
     matrix.push(row)
   }
@@ -111,17 +114,18 @@ function Tile(props: TileProps) {
   const className = selectLetterClassName(letter);
   return (
     <div style={{height, width: height }} className={`tile ${className}`}>
-      {letter.letter}
+      <div className='text-node'>{letter.letter}</div>
     </div>
   )
 }
 
 interface KeyboardProps {
   letters: Letter[];
+  handleTouch: (e: React.TouchEvent) => void;
 }
 
 function Keyboard(props: KeyboardProps) {
-  const { letters } = props;
+  const { letters, handleTouch } = props;
 
   const indices = "qwertyuiop|asdfghjkl|zxcvbnm|"
     .split('').map(c => c.charCodeAt(0) - 'a'.charCodeAt(0))
@@ -133,9 +137,13 @@ function Keyboard(props: KeyboardProps) {
       keyboard.push(keyrow)
       keyrow = []
     } else {
+      if (keyboard.length === 2 && keyrow.length === 0) {
+        keyrow.push(makeLetter(enter));
+      }
       keyrow.push(letters[index])
     }
   })
+  keyboard[keyboard.length-1].push(makeLetter(backspace))
 
   return (
     <div className='keyboard'>
@@ -143,7 +151,7 @@ function Keyboard(props: KeyboardProps) {
         keyboard.map(keyrow =>
           <div className='keyrow'>
             {keyrow.map(kbkey =>
-              <span className={`key ${selectLetterClassName(kbkey)}`}>
+              <span onTouchEnd={handleTouch} className={`key ${selectLetterClassName(kbkey)}`}>
               {kbkey.letter}
               </span>)}
           </div>
@@ -162,7 +170,7 @@ interface AppState {
   maxColumns: number;
   word: string;
   won: boolean;
-  tileHeight: number;
+  tileWidth: number;
 }
 
 class App extends Component<any, AppState> {
@@ -180,24 +188,24 @@ class App extends Component<any, AppState> {
       won: false,
       maxRows,
       maxColumns,
-      tileHeight: 0
+      tileWidth: 0
     }
     this.ref = React.createRef()
     this.handleKeyPress = this.handleKeyPress.bind(this)
+    this.handleTouch = this.handleTouch.bind(this)
   }
 
-  handleKeyPress(e: KeyboardEvent) {
-    console.log(e)
+  helper(key: string, keycode: number) {
     let { matrix, row, column, maxColumns, alphabet } = this.state;
-    if (column < maxColumns && isLetter((e.key.toLowerCase()))) {
-      matrix[row][column].letter = e.key
+    if (column < maxColumns && isLetter((key))) {
+      matrix[row][column].letter = key
       column++
       this.setState({
         matrix,
         row,
         column
       })
-    } else if (column >= maxColumns-1 && e.keyCode === 13) {
+    } else if (column >= maxColumns-1 && keycode === 13) {
       // grade and move to next row
       matrix[row] = gradeWord(this.state.word, this.state.matrix[this.state.row])
       
@@ -210,7 +218,6 @@ class App extends Component<any, AppState> {
            }
         }
       }
-      
       this.setState({
         ...this.state,
         matrix,
@@ -219,23 +226,40 @@ class App extends Component<any, AppState> {
         column: 0,
         won: checkWin(matrix[row])
       })
-    } else if (column > 0 && e.keyCode === 8) {
-      matrix[row][column-1].letter = 'x'
+    } else if (column > 0 && keycode === 8) {
+      matrix[row][column-1].letter = ' '
       this.setState({
         ...this.state,
         matrix,
         column: this.state.column-1
       })
+    }    
+  }
+
+  handleTouch(e: React.TouchEvent) {
+    const key = e.currentTarget.textContent || '';
+    let keycode = key.charCodeAt(0)
+    if (key === enter) {
+      keycode = 13
+    } else if (key === backspace) {
+      keycode = 8
     }
+    this.helper(key, keycode)
+  }
+
+  handleKeyPress(e: KeyboardEvent) {
+    console.log(e)
+    this.helper(e.key.toLowerCase(), e.keyCode)
   }
 
   componentDidMount() {
     document.addEventListener("keydown", this.handleKeyPress)
-    const boardHeight = this.ref.current?.offsetHeight
-    const tileHeight = boardHeight ? boardHeight / 6: 0
+    const boardWidth = this.ref.current?.offsetWidth
+    console.log(boardWidth)
+    const tileWidth = boardWidth ? boardWidth / 5 - 20: 0
     this.setState({
       ...this.state,
-      tileHeight
+      tileWidth
     })
   }
 
@@ -255,15 +279,16 @@ class App extends Component<any, AppState> {
     } else {
       content = this.state.matrix.map(row =>
         <div className="row">
-          {row.map(letter => <Tile letter={letter} height={this.state.tileHeight} />)}
+          {row.map(letter => <Tile letter={letter} height={this.state.tileWidth} />)}
         </div>
       )
     }
 
     return (
       <div className="app" ref={this.ref}>
+        <h1>wurdle</h1>
         {content}
-        <Keyboard letters={this.state.alphabet} />
+        <Keyboard letters={this.state.alphabet} handleTouch={this.handleTouch} />
       </div>
     );
   }
