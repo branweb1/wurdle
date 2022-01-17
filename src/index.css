@@ -55,7 +55,7 @@ table {
 
 .in-word {
   color: white;
-  background-color: orange;
+  background-color: #C9B458;
 }
 
 .used {
@@ -64,14 +64,43 @@ table {
 }
 
 .app {
-  border: 1px solid black;
-  max-width: 70%;
+  width: 400px;
   margin: 0 auto;
 }
 
+.row {
+  display: flex;
+}
+
 .tile {
+  flex-grow: 1;
   display: inline-block;
+  border: 1px solid gray;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 5px;
+  margin: 3px;
+  height: 30px;
+}
+
+.keyboard {
   border: 1px solid black;
-  width: 19%;
-  height: 100px;
+}
+
+.keyrow {
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.key {
+  flex-grow: 0;
+  flex-basis: 28px;
+  margin: 3px;
+  border: 1px solid black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px 3px;
+  height: 30px;
 }

@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
 
 // TODO styling
+// TODO dynamically compute height and width of board and tiles
+// board height is some multiple of 6, tile height is bh / 6, and tile width is the same
 // TODO expand wordlist and select some other way--network call?
 // TODO configure to allow for 6-letter words
-// render keyboard
 const wordlist = [
   'about', 'there', 'could', 'every', 'about', 'story', 'begin', 'maybe', 'issue', 'whole', 'break', 'local',
   'value', 'movie', 'share', 'guess', 'enjoy', 'apply', 'river', 'stick', 'mouth', 'touch', 'judge', 'basic',
@@ -11,14 +12,6 @@ const wordlist = [
   'angry', 'works', 'tooth', 'shift', 'guide', 'cycle', 'quote', 'knife', 'brief', 'shout', 'giant', 'slide',
   'giant', 'weigh', 'sauce', 'idiot', 'taste', 'stake', 'tiger', 'adapt', 'smell', 'humor', 'silly', 'guide'
 ]
-
-// how to render keyboard
-// we need the populated part of the guess matrix
-// iterate through thouse and update the array of Letter
-// never overriding the inOrder if it is true
-// then render in querty order
-
-
 
 function getWord(words: string[]): string {
   const idx = Math.floor(Math.random() * words.length);
@@ -94,22 +87,6 @@ function checkWin(guess: Letter[]): boolean {
   return true;
 }
 
-interface AppState {
-  row: number;
-  column: number;
-  matrix: Letter[][];
-  alphabet: Letter[];
-  maxRows: number;
-  maxColumns: number;
-  word: string;
-  won: boolean;
-}
-
-
-interface TileProps {
-  letter: Letter;
-}
-
 function selectLetterClassName(letter: Letter): string {
   let className = '';
   
@@ -124,11 +101,16 @@ function selectLetterClassName(letter: Letter): string {
   return className;
 }
 
+interface TileProps {
+  letter: Letter;
+  height: number;
+}
+
 function Tile(props: TileProps) {
-  const { letter } = props;
+  const { letter, height } = props;
   const className = selectLetterClassName(letter);
   return (
-    <div className={`tile ${className}`}>
+    <div style={{height, width: height }} className={`tile ${className}`}>
       {letter.letter}
     </div>
   )
@@ -140,19 +122,51 @@ interface KeyboardProps {
 
 function Keyboard(props: KeyboardProps) {
   const { letters } = props;
-  const querty = "qwertyuiopasdfghjklzxcvbnm".split('')
-    .map(c => c.charCodeAt(0)).map(idx => letters[idx-'a'.charCodeAt(0)])
+
+  const indices = "qwertyuiop|asdfghjkl|zxcvbnm|"
+    .split('').map(c => c.charCodeAt(0) - 'a'.charCodeAt(0))
+
+  const keyboard: Letter[][] = [];
+  let keyrow: Letter[] = [];
+  indices.forEach(index => {
+    if (index === 27) {
+      keyboard.push(keyrow)
+      keyrow = []
+    } else {
+      keyrow.push(letters[index])
+    }
+  })
+
   return (
-    <div>
+    <div className='keyboard'>
       {
-        querty.map(letter =>
-          <span className={`key ${selectLetterClassName(letter)}`}>{letter.letter}</span>)
+        keyboard.map(keyrow =>
+          <div className='keyrow'>
+            {keyrow.map(kbkey =>
+              <span className={`key ${selectLetterClassName(kbkey)}`}>
+              {kbkey.letter}
+              </span>)}
+          </div>
+        )
       }
     </div>
   )
 }
 
+interface AppState {
+  row: number;
+  column: number;
+  matrix: Letter[][];
+  alphabet: Letter[];
+  maxRows: number;
+  maxColumns: number;
+  word: string;
+  won: boolean;
+  tileHeight: number;
+}
+
 class App extends Component<any, AppState> {
+  private ref: React.RefObject<HTMLDivElement>;
   constructor(props: any) {
     super(props)
     const maxRows = 6
@@ -165,9 +179,10 @@ class App extends Component<any, AppState> {
       word: getWord(wordlist),
       won: false,
       maxRows,
-      maxColumns
+      maxColumns,
+      tileHeight: 0
     }
-
+    this.ref = React.createRef()
     this.handleKeyPress = this.handleKeyPress.bind(this)
   }
 
@@ -215,7 +230,13 @@ class App extends Component<any, AppState> {
   }
 
   componentDidMount() {
-    document.addEventListener("keydown", this.handleKeyPress);
+    document.addEventListener("keydown", this.handleKeyPress)
+    const boardHeight = this.ref.current?.offsetHeight
+    const tileHeight = boardHeight ? boardHeight / 6: 0
+    this.setState({
+      ...this.state,
+      tileHeight
+    })
   }
 
   componentWillUnmount() {
@@ -234,13 +255,13 @@ class App extends Component<any, AppState> {
     } else {
       content = this.state.matrix.map(row =>
         <div className="row">
-          {row.map(letter => <Tile letter={letter} />)}
+          {row.map(letter => <Tile letter={letter} height={this.state.tileHeight} />)}
         </div>
       )
     }
 
     return (
-      <div className="app">
+      <div className="app" ref={this.ref}>
         {content}
         <Keyboard letters={this.state.alphabet} />
       </div>
