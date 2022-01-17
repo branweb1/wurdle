@@ -5,6 +5,7 @@
   "overrides": {
     "mini-css-extract-plugin": "2.4.5"
   },
+  "homepage": "/wurdle",
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.1",
     "@testing-library/react": "^12.1.2",

@@ -65,7 +65,7 @@ table {
 
 .app {
   width: 50%;
-  min-width: 300px;
+  min-width: 360px;
   max-width: 700px;
   /* border: 1px solid black; */
   margin: 0 auto;
@@ -113,6 +113,7 @@ table {
   align-items: center;
   padding: 8px 3px;
   height: 30px;
+  cursor: pointer;
 }
 
 h1 {
