@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/wurdle/static/css/main.a016cf0f.css",
+    "main.js": "/wurdle/static/js/main.373f82e3.js",
+    "index.html": "/wurdle/index.html",
+    "main.a016cf0f.css.map": "/wurdle/static/css/main.a016cf0f.css.map",
+    "main.373f82e3.js.map": "/wurdle/static/js/main.373f82e3.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.a016cf0f.css",
+    "static/js/main.373f82e3.js"
+  ]
+}
